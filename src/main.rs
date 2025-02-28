@@ -10,7 +10,7 @@ use lettre::{
 ///
 /// * `SENDER` - Gmail address to send emails from such as "sender@gmail.com"
 /// * `APP_PASSWORD` - Gmail App Password for SMTP authentication
-///   Generate at https://myaccount.google.com/security under "2-Step Verification" > "App passwords"
+///   Generate at <https://myaccount.google.com/security> under "2-Step Verification" > "App passwords"
 ///
 /// # Required Files
 ///
@@ -80,7 +80,7 @@ fn main() {
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
 /// // For JSON like: {"email": "example@test.com", ...}
 /// // You might implement:
 /// fn receiver_email_from_value(value: &serde_json::Value) -> String {
@@ -104,7 +104,7 @@ fn receiver_email_from_value(_: &serde_json::Value) -> String {
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
 /// // For JSON like: {"body": "Hello world", ...}
 /// // You might implement:
 /// fn body_from_json_value(value: &serde_json::Value) -> String {
