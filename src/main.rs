@@ -1,7 +1,7 @@
 use lettre::{
-    message::{header, Mailbox, SinglePart},
-    transport::smtp::authentication::Credentials,
     Address, Message, SmtpTransport, Transport,
+    message::{Mailbox, SinglePart, header},
+    transport::smtp::authentication::Credentials,
 };
 
 /// Main function that sends emails to multiple recipients using Gmail SMTP.
@@ -34,32 +34,46 @@ fn main() {
     let password = std::env::var("APP_PASSWORD").expect("env:APP_PASSWORD not found");
     let targets = include_str!("../recipients.json");
     let receivers: Vec<serde_json::Value> = serde_json::from_str::<serde_json::Value>(&targets)
-        .unwrap()
+        .expect("Failed to parse recipients.json")
         .as_array()
-        .unwrap()
+        .expect("recipients.json must be a JSON array")
         .into_iter()
         .map(|value| value.to_owned())
         .collect::<Vec<_>>();
     let sender = SmtpTransport::starttls_relay("smtp.gmail.com")
-        .unwrap()
+        .expect("Failed to create SMTP relay")
         .credentials(Credentials::new(username.to_string(), password.to_string()))
         .build();
-    assert!(sender.test_connection().expect("OK"));
+    assert!(
+        sender
+            .test_connection()
+            .expect("Failed to connect to SMTP server")
+    );
 
     for (i, value) in receivers.iter().enumerate() {
         println!("Sending email: {}/{}", i + 1, receivers.len());
         let receiver = receiver_email_from_value(value);
         let subject = "This is a test email";
         let email = Message::builder()
-            .to(Mailbox::new(None, receiver.parse::<Address>().unwrap()))
-            .from(Mailbox::new(None, username.parse::<Address>().unwrap()))
+            .to(Mailbox::new(
+                None,
+                receiver
+                    .parse::<Address>()
+                    .expect("Invalid recipient email address"),
+            ))
+            .from(Mailbox::new(
+                None,
+                username
+                    .parse::<Address>()
+                    .expect("Invalid sender email address"),
+            ))
             .subject(subject)
             .singlepart(
                 SinglePart::builder()
                     .header(header::ContentType::TEXT_PLAIN)
                     .body(body_from_json_value(&value)),
             )
-            .unwrap();
+            .expect("Failed to build email message");
         let result = sender.send(&email);
 
         if let Err(e) = result {
